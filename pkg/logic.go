@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -73,45 +72,6 @@ func (env *SDSController) Communication() {
 			env.SubRegionAllocation(env.Bots[orderCommunication[i]])
 		}
 	}
-
-}
-
-// GenerateRandomNumber will generate a slice
-// with a random permutation on 1 .... n
-func GenerateRandomNumber(size int) []int {
-	rand.Seed(time.Now().UnixNano())
-	res := rand.Perm(size)
-	return res
-}
-
-// StatsGenerator generates all the stats
-func (env *SDSController) StatsGenerator() {
-	botCountActive := 0
-	actualRegion := 0
-	region := make(map[int]int)
-	for _, bot := range env.Bots {
-		if bot.Detection == true {
-			botCountActive++
-			region[bot.RegionID]++
-		}
-	}
-
-	for _, reg := range env.SubRegions {
-		if env.Limit < reg.Count {
-			actualRegion++
-		}
-	}
-	percentageBotActive := float64(botCountActive) / float64(len(env.Bots))
-	fmt.Println("---------------------------")
-	fmt.Println("Active Bots in the System")
-	fmt.Println(percentageBotActive)
-	fmt.Println("---------------------------")
-	fmt.Println("Region Details")
-	fmt.Println(region)
-	fmt.Println("---------------------------")
-	fmt.Println("Total Subregion with excess count")
-	fmt.Println(actualRegion)
-	fmt.Println("---------------------------")
 
 }
 
