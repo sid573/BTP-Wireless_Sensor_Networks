@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"math/rand"
+	"time"
 )
 
 // Bot for creating each bot
@@ -23,7 +24,8 @@ type Region struct {
 type SubRegion struct {
 	ID        int
 	RegionID  int
-	Available float64
+	Count     float64
+	Available bool
 }
 
 // SDSController to be used as reciever for functions implemented
@@ -52,11 +54,13 @@ func SDSEnv(botCount int, regionCount int, subRegionCount int, limit float64) *S
 			ID: i,
 		}
 		for j := 1; j <= subRegionCount; j++ {
+			rand.Seed(time.Now().UnixNano())
 			available := rand.Float64()
 			subRegion := &SubRegion{
 				ID:        j,
 				RegionID:  i,
-				Available: available,
+				Count:     available,
+				Available: true,
 			}
 			subRegions = append(subRegions, subRegion)
 		}

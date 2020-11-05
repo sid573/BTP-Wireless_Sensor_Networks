@@ -1,7 +1,9 @@
 package pkg
 
 import (
+	"fmt"
 	"math/rand"
+	"time"
 )
 
 // RandomAllocation for those bots who are
@@ -9,6 +11,7 @@ import (
 // those bot who are still in passive state after
 // communication
 func (env *SDSController) RandomAllocation(bot *Bot) {
+	rand.Seed(time.Now().UnixNano())
 	regionCount := len(env.Regions)
 	subRegionCount := len(env.SubRegions) / regionCount
 	// Randomly allocating region and subregion
@@ -16,6 +19,7 @@ func (env *SDSController) RandomAllocation(bot *Bot) {
 	subRegionID := rand.Intn(subRegionCount) + 1
 	bot.RegionID = regionID
 	bot.SubRegionID = subRegionID
+	env.SubRegionOverlap(bot, regionID, subRegionID)
 }
 
 // DetectionProcess is the step in which all bots
@@ -24,9 +28,15 @@ func (env *SDSController) RandomAllocation(bot *Bot) {
 func (env *SDSController) DetectionProcess(bot *Bot) {
 	for _, subRegion := range env.SubRegions {
 		if bot.RegionID == subRegion.RegionID && bot.SubRegionID == subRegion.ID {
-			if env.Limit >= subRegion.Available {
+			if env.Limit < subRegion.Count {
 				bot.Detection = true
+				subRegion.Available = false
+				break
 			}
+			bot.RegionID = 0
+			bot.SubRegionID = 0
+			bot.Detection = false
+			break
 		}
 	}
 }
@@ -35,13 +45,19 @@ func (env *SDSController) DetectionProcess(bot *Bot) {
 // is allocated then inside that a subregion is selected
 // at random
 func (env *SDSController) SubRegionAllocation(bot *Bot) {
+	rand.Seed(time.Now().UnixNano())
 	regionCount := len(env.Regions)
 	subRegionCount := len(env.SubRegions) / regionCount
 	subRegionID := rand.Intn(subRegionCount) + 1
 	bot.SubRegionID = subRegionID
+	env.SubRegionOverlap(bot, bot.RegionID, subRegionID)
 }
 
-// Communication ...
+// Communication it is the step at which
+// one bot can only communicate with other
+// and if his detection is true then in same region
+// the other bot is given a random subregion
+// to detect
 func (env *SDSController) Communication() {
 	orderCommunication := GenerateRandomNumber(len(env.Bots))
 	for i := 0; i < len(orderCommunication); i = i + 2 {
@@ -63,6 +79,55 @@ func (env *SDSController) Communication() {
 // GenerateRandomNumber will generate a slice
 // with a random permutation on 1 .... n
 func GenerateRandomNumber(size int) []int {
+	rand.Seed(time.Now().UnixNano())
 	res := rand.Perm(size)
 	return res
+}
+
+// StatsGenerator generates all the stats
+func (env *SDSController) StatsGenerator() {
+	botCountActive := 0
+	actualRegion := 0
+	region := make(map[int]int)
+	for _, bot := range env.Bots {
+		if bot.Detection == true {
+			botCountActive++
+			region[bot.RegionID]++
+		}
+	}
+
+	for _, reg := range env.SubRegions {
+		if env.Limit < reg.Count {
+			actualRegion++
+		}
+	}
+	percentageBotActive := float64(botCountActive) / float64(len(env.Bots))
+	fmt.Println("---------------------------")
+	fmt.Println("Active Bots in the System")
+	fmt.Println(percentageBotActive)
+	fmt.Println("---------------------------")
+	fmt.Println("Region Details")
+	fmt.Println(region)
+	fmt.Println("---------------------------")
+	fmt.Println("Total Subregion with excess count")
+	fmt.Println(actualRegion)
+	fmt.Println("---------------------------")
+
+}
+
+// SubRegionOverlap ...
+func (env *SDSController) SubRegionOverlap(bot *Bot, regionID int, subRegionID int) {
+	for _, subRegion := range env.SubRegions {
+		if subRegion.RegionID == regionID && subRegion.ID == subRegionID {
+			if subRegion.Available == false {
+				bot.RegionID = 0
+				bot.SubRegionID = 0
+				bot.Detection = false
+			}
+			if subRegion.Available == true {
+				subRegion.Available = false
+			}
+			break
+		}
+	}
 }
