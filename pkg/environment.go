@@ -31,26 +31,27 @@ type SDSController struct {
 	Bots       []*Bot
 	Regions    []*Region
 	SubRegions []*SubRegion
+	Limit      float64
 }
 
 // SDSEnv to create environment for simulation
-func SDSEnv(botCount int, regionCount int, subRegionCount int) *SDSController {
+func SDSEnv(botCount int, regionCount int, subRegionCount int, limit float64) *SDSController {
 	bots := make([]*Bot, 0)
 	regions := make([]*Region, 0)
 	subRegions := make([]*SubRegion, 0)
 	// Creating bots for environment
-	for i := 0; i < botCount; i++ {
+	for i := 1; i <= botCount; i++ {
 		bot := &Bot{
 			ID: i,
 		}
 		bots = append(bots, bot)
 	}
 	// Creating Region and SubRegions
-	for i := 0; i < regionCount; i++ {
+	for i := 1; i <= regionCount; i++ {
 		region := &Region{
 			ID: i,
 		}
-		for j := 0; j < subRegionCount; j++ {
+		for j := 1; j <= subRegionCount; j++ {
 			available := rand.Float64()
 			subRegion := &SubRegion{
 				ID:        j,
@@ -65,6 +66,7 @@ func SDSEnv(botCount int, regionCount int, subRegionCount int) *SDSController {
 		Bots:       bots,
 		Regions:    regions,
 		SubRegions: subRegions,
+		Limit:      limit,
 	}
 	return controller
 }
