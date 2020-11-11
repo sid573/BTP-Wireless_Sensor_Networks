@@ -1,7 +1,11 @@
 package pkg
 
 import (
+	"fmt"
+	"io"
 	"math/rand"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -57,7 +61,11 @@ func (env *SDSController) SubRegionAllocation(bot *Bot) {
 // and if his detection is true then in same region
 // the other bot is given a random subregion
 // to detect
-func (env *SDSController) Communication() {
+func (env *SDSController) Communication(file *os.File, i int) {
+	mw := io.MultiWriter(os.Stdout, file)
+	fmt.Fprintln(mw, "-----------------------------------------")
+	fmt.Fprintln(mw, "Iteration "+strconv.Itoa(i))
+	fmt.Fprintln(mw, "-----------------------------------------")
 	orderCommunication := GenerateRandomNumber(len(env.Bots))
 	for i := 0; i < len(orderCommunication); i = i + 2 {
 		if i+1 == len(orderCommunication) {
@@ -71,6 +79,10 @@ func (env *SDSController) Communication() {
 			env.Bots[orderCommunication[i]].RegionID = env.Bots[orderCommunication[i+1]].RegionID
 			env.SubRegionAllocation(env.Bots[orderCommunication[i]])
 		}
+		fmt.Fprintln(mw, *env.Bots[orderCommunication[i]])
+		fmt.Fprintln(mw, *env.Bots[orderCommunication[i+1]])
+		fmt.Fprintln(mw, "-----------------------------------------")
+
 	}
 
 }
